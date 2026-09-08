@@ -10,6 +10,16 @@ public class Flee : MonoBehaviour
     [SerializeField] private float changeDirectionInterval = 2f;
     [SerializeField] private float safeDistance = 12f;
 
+    [Header("Evasión de Obstáculos")]
+    [SerializeField] private LayerMask obstacleLayer;
+    [SerializeField] private float obstacleDetectionRange = 2f;
+    [SerializeField] private float obstacleRaySpread = 30f;
+    [SerializeField] private int obstacleRayCount = 5;
+
+    [Header("Evasión de Paredes")]
+    [SerializeField] private LayerMask wallLayer;
+    [SerializeField] private float wallDetectionRange = 1.5f;
+
     private Rigidbody2D rb;
     private Transform player;
     private Vector2 currentDirection;
@@ -69,7 +79,19 @@ public class Flee : MonoBehaviour
         }
 
         Vector2 desired = awayFromPlayer.normalized * moveSpeed;
-        rb.linearVelocity = desired;
+        
+        Vector2 obstacleAvoidance = ObstacleAvoidance.GetAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, obstacleLayer, 
+            obstacleDetectionRange, obstacleRaySpread, obstacleRayCount);
+        
+        Vector2 wallAvoidance = ObstacleAvoidance.GetWallAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, wallLayer, 
+            wallDetectionRange);
+
+        Vector2 finalVelocity = desired + obstacleAvoidance + wallAvoidance;
+        finalVelocity = finalVelocity.normalized * moveSpeed;
+        
+        rb.linearVelocity = finalVelocity;
     }
 
     void Wander()
@@ -82,7 +104,20 @@ public class Flee : MonoBehaviour
             timer = 0f;
         }
 
-        rb.linearVelocity = currentDirection * moveSpeed;
+        Vector2 desiredVelocity = currentDirection * moveSpeed;
+        
+        Vector2 obstacleAvoidance = ObstacleAvoidance.GetAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, obstacleLayer, 
+            obstacleDetectionRange, obstacleRaySpread, obstacleRayCount);
+        
+        Vector2 wallAvoidance = ObstacleAvoidance.GetWallAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, wallLayer, 
+            wallDetectionRange);
+
+        Vector2 finalVelocity = desiredVelocity + obstacleAvoidance + wallAvoidance;
+        finalVelocity = finalVelocity.normalized * moveSpeed;
+        
+        rb.linearVelocity = finalVelocity;
     }
 
     void PickWanderDirection()
@@ -100,5 +135,29 @@ public class Flee : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         PickWanderDirection();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!Application.isPlaying) return;
+        
+        Gizmos.color = Color.red;
+        Vector2 forward = rb.linearVelocity.normalized;
+        if (forward == Vector2.zero) forward = Vector2.up;
+        
+        float halfSpread = obstacleRaySpread * 0.5f;
+        float step = obstacleRayCount > 1 ? obstacleRaySpread / (obstacleRayCount - 1) : 0f;
+        
+        for (int i = 0; i < obstacleRayCount; i++)
+        {
+            float angle = -halfSpread + i * step;
+            Vector2 rayDir = Quaternion.Euler(0, 0, angle) * forward;
+            Gizmos.DrawRay(transform.position, rayDir * obstacleDetectionRange);
+        }
+        
+        Gizmos.color = Color.blue;
+        Gizmos.DrawRay(transform.position, forward * wallDetectionRange);
+        Gizmos.DrawRay(transform.position, Quaternion.Euler(0, 0, 45) * forward * wallDetectionRange);
+        Gizmos.DrawRay(transform.position, Quaternion.Euler(0, 0, -45) * forward * wallDetectionRange);
     }
 }

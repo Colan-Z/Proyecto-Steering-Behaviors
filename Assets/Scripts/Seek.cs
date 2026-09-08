@@ -10,6 +10,17 @@ public class Seek : MonoBehaviour
     [SerializeField] private float changeDirectionInterval = 2f;
     [SerializeField] private float giveUpRange = 12f;
 
+    [Header("Evasión de Obstáculos (Chaser)")]
+    [SerializeField] private LayerMask obstacleLayer;
+    [SerializeField] private float obstacleDetectionRange = 3f;
+    [SerializeField] private float obstacleRaySpread = 60f;
+    [SerializeField] private int obstacleRayCount = 7;
+    [SerializeField] private float avoidancePriority = 2f;
+
+    [Header("Evasión de Paredes")]
+    [SerializeField] private LayerMask wallLayer;
+    [SerializeField] private float wallDetectionRange = 2f;
+
     private Rigidbody2D rb;
     private Transform player;
     private Vector2 currentDirection;
@@ -71,7 +82,38 @@ public class Seek : MonoBehaviour
         }
 
         Vector2 desired = toPlayer.normalized * moveSpeed;
-        rb.linearVelocity = desired;
+        
+        Vector2 obstacleAvoidance = ObstacleAvoidance.GetAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, obstacleLayer, 
+            obstacleDetectionRange, obstacleRaySpread, obstacleRayCount);
+        
+        Vector2 wallAvoidance = ObstacleAvoidance.GetWallAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, wallLayer, 
+            wallDetectionRange);
+
+        Vector2 totalAvoidance = (obstacleAvoidance + wallAvoidance) * avoidancePriority;
+        
+        Vector2 finalVelocity;
+        if (totalAvoidance.sqrMagnitude > 0.01f)
+        {
+            float avoidanceStrength = totalAvoidance.magnitude;
+            float desiredStrength = desired.magnitude;
+            
+            if (avoidanceStrength > desiredStrength * 0.3f)
+            {
+                finalVelocity = Vector2.Lerp(desired, totalAvoidance, 0.7f).normalized * moveSpeed;
+            }
+            else
+            {
+                finalVelocity = (desired + totalAvoidance).normalized * moveSpeed;
+            }
+        }
+        else
+        {
+            finalVelocity = desired;
+        }
+        
+        rb.linearVelocity = finalVelocity;
     }
 
     void Wander()
@@ -84,7 +126,20 @@ public class Seek : MonoBehaviour
             timer = 0f;
         }
 
-        rb.linearVelocity = currentDirection * moveSpeed;
+        Vector2 desiredVelocity = currentDirection * moveSpeed;
+        
+        Vector2 obstacleAvoidance = ObstacleAvoidance.GetAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, obstacleLayer, 
+            obstacleDetectionRange, obstacleRaySpread, obstacleRayCount);
+        
+        Vector2 wallAvoidance = ObstacleAvoidance.GetWallAvoidanceForce(
+            transform.position, rb.linearVelocity, moveSpeed, wallLayer, 
+            wallDetectionRange);
+
+        Vector2 finalVelocity = desiredVelocity + obstacleAvoidance + wallAvoidance;
+        finalVelocity = finalVelocity.normalized * moveSpeed;
+        
+        rb.linearVelocity = finalVelocity;
     }
 
     void PickWanderDirection()
@@ -102,5 +157,29 @@ public class Seek : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         PickWanderDirection();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!Application.isPlaying) return;
+        
+        Gizmos.color = Color.red;
+        Vector2 forward = rb.linearVelocity.normalized;
+        if (forward == Vector2.zero) forward = Vector2.up;
+        
+        float halfSpread = obstacleRaySpread * 0.5f;
+        float step = obstacleRayCount > 1 ? obstacleRaySpread / (obstacleRayCount - 1) : 0f;
+        
+        for (int i = 0; i < obstacleRayCount; i++)
+        {
+            float angle = -halfSpread + i * step;
+            Vector2 rayDir = Quaternion.Euler(0, 0, angle) * forward;
+            Gizmos.DrawRay(transform.position, rayDir * obstacleDetectionRange);
+        }
+        
+        Gizmos.color = Color.blue;
+        Gizmos.DrawRay(transform.position, forward * wallDetectionRange);
+        Gizmos.DrawRay(transform.position, Quaternion.Euler(0, 0, 45) * forward * wallDetectionRange);
+        Gizmos.DrawRay(transform.position, Quaternion.Euler(0, 0, -45) * forward * wallDetectionRange);
     }
 }

@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 5784422806620104930}
   - component: {fileID: 1243693605031966021}
   - component: {fileID: 8273327772177117190}
+  - component: {fileID: 3531426693110039427}
   m_Layer: 0
   m_Name: Wanderer
   m_TagString: Untagged
@@ -151,7 +152,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &8273327772177117190
 BoxCollider2D:
@@ -199,6 +200,31 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.822734, y: 0.6293521}
   m_EdgeRadius: 0
+--- !u!114 &3531426693110039427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4080913331580703680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7f37c27c042bcf45a1ee3e4f8c68346, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Wander
+  moveSpeed: 2
+  changeDirectionInterval: 2
+  wanderRadius: 5
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  obstacleDetectionRange: 3
+  obstacleRaySpread: 90
+  obstacleRayCount: 7
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  wallDetectionRange: 1.5
 --- !u!1 &4708918909727360873
 GameObject:
   m_ObjectHideFlags: 0

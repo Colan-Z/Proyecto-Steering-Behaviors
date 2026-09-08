@@ -416,6 +416,7 @@ GameObject:
   - component: {fileID: 3792785114608939534}
   - component: {fileID: 4842053832619857329}
   - component: {fileID: 6182531650383981746}
+  - component: {fileID: 6897775357830917383}
   m_Layer: 0
   m_Name: Chaser
   m_TagString: Untagged
@@ -464,7 +465,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &6182531650383981746
 BoxCollider2D:
@@ -512,6 +513,35 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.8211984, y: 0.7163836}
   m_EdgeRadius: 0
+--- !u!114 &6897775357830917383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4850161331088109135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf0f88757bd09df41ba4ea1ea65b5555, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Seek
+  moveSpeed: 4
+  detectionRange: 10
+  arriveRange: 1
+  wanderRange: 2
+  changeDirectionInterval: 1
+  giveUpRange: 15
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  obstacleDetectionRange: 3
+  obstacleRaySpread: 90
+  obstacleRayCount: 9
+  avoidancePriority: 3
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  wallDetectionRange: 1.5
 --- !u!1 &6095161741027888921
 GameObject:
   m_ObjectHideFlags: 0

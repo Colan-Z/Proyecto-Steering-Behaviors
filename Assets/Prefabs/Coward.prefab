@@ -195,6 +195,7 @@ GameObject:
   - component: {fileID: 5260784633620227452}
   - component: {fileID: 8449053600540403626}
   - component: {fileID: 5609047431187867048}
+  - component: {fileID: 1088400174683221617}
   m_Layer: 0
   m_Name: Coward
   m_TagString: Untagged
@@ -243,7 +244,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &5609047431187867048
 BoxCollider2D:
@@ -291,6 +292,34 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.7750391, y: 0.6523329}
   m_EdgeRadius: 0
+--- !u!114 &1088400174683221617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4315039472783121028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dabdd7232680124da9e79dc618be670, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Flee
+  moveSpeed: 4
+  detectionRange: 6
+  fleeRange: 10
+  wanderRange: 3
+  changeDirectionInterval: 2
+  safeDistance: 12
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  obstacleDetectionRange: 3
+  obstacleRaySpread: 90
+  obstacleRayCount: 7
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  wallDetectionRange: 1.5
 --- !u!1 &5580531880999532894
 GameObject:
   m_ObjectHideFlags: 0
