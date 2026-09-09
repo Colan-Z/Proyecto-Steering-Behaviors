@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Proyecto Steering Behaviors.slnx"
+    "dotnet.defaultSolution": "Proyecto-Steering-Behaviors.slnx"
 }
