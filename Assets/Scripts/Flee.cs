@@ -5,7 +5,6 @@ public class Flee : MonoBehaviour
     [Header("Configuración Flee")]
     [SerializeField] private float moveSpeed = 3f;
     [SerializeField] private float detectionRange = 6f;
-    [SerializeField] private float fleeRange = 10f;
     [SerializeField] private float wanderRange = 3f;
     [SerializeField] private float changeDirectionInterval = 2f;
     [SerializeField] private float safeDistance = 12f;

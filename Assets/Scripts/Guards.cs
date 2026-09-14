@@ -9,6 +9,7 @@ public class Guards : MonoBehaviour
     [SerializeField] private float sideOffset = 1.8f;
     [SerializeField] private float arriveRadius = 0.3f;
     [SerializeField] private float slowDownRadius = 2f;
+    [SerializeField] private float maxDistanceFromPlayer = 10f;
 
     [Header("Detección Obstáculos")]
     [SerializeField] private LayerMask obstacleLayer;
@@ -23,6 +24,9 @@ public class Guards : MonoBehaviour
     [Header("Ajustes de Evasión")]
     [SerializeField] private float avoidanceStrength = 1.5f;
     [SerializeField] private float stuckBoostMultiplier = 2f;
+
+    [Header("Posición Segura")]
+    [SerializeField] private float safeCheckRadius = 0.3f;
 
     private Rigidbody2D rb;
     private Transform player;
@@ -42,6 +46,9 @@ public class Guards : MonoBehaviour
         {
             player = playerObj.transform;
             playerController = playerObj.GetComponent<PlayerController>();
+            lastMoveInput = Vector2.down; // dirección por defecto, la que prefieras
+            targetPosition = player.position + (Vector3)(escortIndex == 0 ? Vector2.left : Vector2.right) * sideOffset;
+            lastPosition = rb.position;
         }
     }
 
@@ -53,6 +60,9 @@ public class Guards : MonoBehaviour
         if (moveInput.sqrMagnitude > 0.01f) lastMoveInput = moveInput.normalized;
 
         CalculateFormationPosition(moveInput);
+
+        CheckTeleportToPlayer();
+
         Vector2 velocity = CalculateSteering();
         rb.linearVelocity = velocity;
         
@@ -90,7 +100,22 @@ public class Guards : MonoBehaviour
             offset = new Vector2((escortIndex == 0 ? -1 : 1) * sideOffset * 0.7f, -dir.y * followDistance);
         }
 
-        targetPosition = (Vector2)player.position + offset;
+        Vector2 desiredTarget = (Vector2)player.position + offset;
+        targetPosition = GetSafeTargetPosition(desiredTarget);
+    }
+    Vector2 GetSafeTargetPosition(Vector2 desiredTarget)
+    {
+        if (!Physics2D.OverlapCircle(desiredTarget, safeCheckRadius, obstacleLayer))
+            return desiredTarget;
+
+        for (float t = 0.2f; t <= 1f; t += 0.2f)
+        {
+            Vector2 candidate = Vector2.Lerp(desiredTarget, player.position, t);
+            if (!Physics2D.OverlapCircle(candidate, safeCheckRadius, obstacleLayer))
+                return candidate;
+        }
+
+        return player.position;
     }
 
     Vector2 CalculateSteering()
@@ -99,17 +124,14 @@ public class Guards : MonoBehaviour
         Vector2 toTarget = targetPosition - pos;
         float dist = toTarget.magnitude;
 
-        // Arrive behavior
         float speed = moveSpeed;
         if (dist < arriveRadius) speed = 0f;
         else if (dist < slowDownRadius) speed *= dist / slowDownRadius;
 
         Vector2 desired = (dist > 0.01f) ? toTarget.normalized * speed : Vector2.zero;
 
-        // Obstacle avoidance
         Vector2 avoidance = GetPredictiveAvoidance(pos, desired);
         
-        // Player avoidance
         Vector2 playerAvoid = GetPlayerAvoidance(pos);
 
         // Si se traba, aumentar fuerza de evasión
@@ -214,6 +236,18 @@ public class Guards : MonoBehaviour
             return (-toPlayer.normalized) * playerAvoidForce * (1f - dist / playerAvoidRadius);
         }
         return Vector2.zero;
+    }
+
+    void CheckTeleportToPlayer()
+    {
+        float distToPlayer = Vector2.Distance(rb.position, player.position);
+        if (distToPlayer > maxDistanceFromPlayer)
+        {
+            rb.position = targetPosition;
+            rb.linearVelocity = Vector2.zero;
+            lastPosition = rb.position;
+            stuckTimer = 0f;
+        }
     }
 
     void OnDrawGizmosSelected()
